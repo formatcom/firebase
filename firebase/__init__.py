@@ -23,7 +23,7 @@ class Firebase:
     def child(self, path):
        root_url = '%s/' % self.ROOT_URL
        url = urlparse.urljoin(root_url, path.lstrip('/'))
-       return Firebase(url, self.auth_token, self.DEBUG)
+       return Firebase(url, self.auth_token, self.DEBUG, self.ERROR_500_RETRY, self.ERROR_500_DELAY)
 
     def parent(self):
        url = os.path.dirname(self.ROOT_URL)
@@ -31,7 +31,7 @@ class Firebase:
        up = urlparse.urlparse(url)
        if up.path == '':
           return None #maybe throw exception here?
-       return Firebase(url, self.auth_token, self.DEBUG)
+       return Firebase(url, self.auth_token, self.DEBUG, self.ERROR_500_RETRY, self.ERROR_500_DELAY)
 
     def name(self):
         return os.path.basename(self.ROOT_URL)
