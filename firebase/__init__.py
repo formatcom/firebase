@@ -3,15 +3,20 @@ import sys
 import urlparse #for urlparse and urljoin
 import os #for os.path.dirname
 import json #for dumps
+from time import sleep
 
 class Firebase:
     ROOT_URL = '' #no trailing slash
-    DEBUG = False
+    DEBUG    = False
+    ERROR_500_RETRY = False
+    ERROR_500_DELAY = 10
 
-    def __init__(self, root_url, auth_token=None, debug=False):
+    def __init__(self, root_url, auth_token=None, debug=False, error_500_retry=False, error_500_delay=10):
         self.ROOT_URL = root_url.rstrip('/')
         self.auth_token = auth_token
         self.DEBUG = debug
+        sellf.ERROR_500_RETRY = error_500_retry
+        sellf.ERROR_500_DELAY = error_500_delay
 
     #These methods are intended to mimic Firebase API calls.
 
@@ -89,14 +94,18 @@ class Firebase:
                 del kwargs['params']
             params.update({'auth': self.auth_token})
 
-        try:
-            r = requests.request(method, self.__url(), params=params, **kwargs)
-            r.raise_for_status() #throw exception if error
-            return r.json()
-        except requests.exceptions.HTTPError as e:
-            if e.response.status_code is 500:
-                return self.__request(method, _kwargs)
-
+        response = requests.request(method, self.__url(), params=params, **kwargs)
+        
+        if response.status_code == 200:
+            return response.json()
+        elif self.ERROR_500_RETRY and response.status_code == 500:
+            if self.DEBUG:
+                sys.stderr.write('[ ERROR 500 RETRY ]\n')
+                sys.stderr.flush()
+            sleep(self.ERROR_500_DELAY)
+            return self.__request(method)
+        else:
+            response.raise_for_status() #throw exception if error
 
     def __url(self):
        #We append .json to end of ROOT_URL for REST API.
