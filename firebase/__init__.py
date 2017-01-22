@@ -15,8 +15,8 @@ class Firebase:
         self.ROOT_URL = root_url.rstrip('/')
         self.auth_token = auth_token
         self.DEBUG = debug
-        sellf.ERROR_500_RETRY = error_500_retry
-        sellf.ERROR_500_DELAY = error_500_delay
+        self.ERROR_500_RETRY = error_500_retry
+        self.ERROR_500_DELAY = error_500_delay
 
     #These methods are intended to mimic Firebase API calls.
 
