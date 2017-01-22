@@ -93,7 +93,7 @@ class Firebase:
             r = requests.request(method, self.__url(), params=params, **kwargs)
             r.raise_for_status() #throw exception if error
             return r.json()
-        except HTTPError as e:
+        except requests.exceptions.HTTPError as e:
             if e.response.status_code is 500:
                 return self.__request(method, _kwargs)
 
