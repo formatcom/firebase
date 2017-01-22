@@ -76,6 +76,9 @@ class Firebase:
     def __request(self, method, **kwargs):
         #Firebase API does not accept form-encoded PUT/POST data. It needs to
         #be JSON encoded.
+
+        _kwargs = kwargs
+
         if 'data' in kwargs:
             kwargs['data'] = json.dumps(kwargs['data'])
 
@@ -86,9 +89,13 @@ class Firebase:
                 del kwargs['params']
             params.update({'auth': self.auth_token})
 
-        r = requests.request(method, self.__url(), params=params, **kwargs)
-        r.raise_for_status() #throw exception if error
-        return r.json()
+        try:
+            r = requests.request(method, self.__url(), params=params, **kwargs)
+            r.raise_for_status() #throw exception if error
+            return r.json()
+        except HTTPError as e:
+            if e.response.status_code is 500:
+                return self.__request(method, _kwargs)
 
 
     def __url(self):
