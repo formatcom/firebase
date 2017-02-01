@@ -112,7 +112,7 @@ class Firebase:
                 sys.stderr.write('[ ERROR 500 RETRY ]\n')
                 sys.stderr.flush()
             sleep(self.ERROR_DELAY)
-            return self.__request(method)
+            return self.__request(method, data = _data)
         else:
             response.raise_for_status() #throw exception if error
 
