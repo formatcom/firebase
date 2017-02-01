@@ -84,9 +84,9 @@ class Firebase:
         #Firebase API does not accept form-encoded PUT/POST data. It needs to
         #be JSON encoded.
 
-        _kwargs = kwargs
-
+        _data = None
         if 'data' in kwargs:
+            _data = kwargs['data']
             kwargs['data'] = json.dumps(kwargs['data'])
 
         params = {}
@@ -106,7 +106,7 @@ class Firebase:
                 sys.stderr.write('[ ERROR 400 RETRY ]\n')
                 sys.stderr.flush()
             sleep(self.ERROR_DELAY)
-            return self.__request(method)
+            return self.__request(method, data = _data)
         elif self.ERROR_500_RETRY and response.status_code == 500:
             if self.DEBUG:
                 sys.stderr.write('[ ERROR 500 RETRY ]\n')
