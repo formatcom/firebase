@@ -9,15 +9,21 @@ class Firebase:
     ROOT_URL = '' #no trailing slash
     DEBUG    = False
     ERROR_500_RETRY = False
+    ERROR_502_RETRY = False
     ERROR_400_RETRY = False
     ERROR_DELAY = 10
 
-    def __init__(self, root_url, auth_token=None, debug=False, error_400_retry=False, error_500_retry=False, error_delay=10):
+    def __init__(
+            self, root_url, auth_token=None, debug=False, 
+            error_400_retry=False, error_500_retry=False, 
+            error_502_retry=False, error_delay=10):
+        
         self.ROOT_URL = root_url.rstrip('/')
         self.auth_token = auth_token
         self.DEBUG = debug
         self.ERROR_400_RETRY = error_400_retry
         self.ERROR_500_RETRY = error_500_retry
+        self.ERROR_502_RETRY = error_502_retry
         self.ERROR_DELAY = error_delay
 
     #These methods are intended to mimic Firebase API calls.
@@ -25,7 +31,10 @@ class Firebase:
     def child(self, path):
        root_url = '%s/' % self.ROOT_URL
        url = urlparse.urljoin(root_url, path.lstrip('/'))
-       return Firebase(url, self.auth_token, self.DEBUG, self.ERROR_400_RETRY, self.ERROR_500_RETRY, self.ERROR_DELAY)
+       return Firebase(
+               url, self.auth_token, self.DEBUG, 
+               self.ERROR_400_RETRY, self.ERROR_500_RETRY, 
+               self.ERROR_502_RETRY, self.ERROR_DELAY)
 
     def parent(self):
        url = os.path.dirname(self.ROOT_URL)
@@ -33,7 +42,10 @@ class Firebase:
        up = urlparse.urlparse(url)
        if up.path == '':
           return None #maybe throw exception here?
-       return Firebase(url, self.auth_token, self.DEBUG, self.ERROR_400_RETRY, self.ERROR_500_RETRY, self.ERROR_DELAY)
+       return Firebase(
+               url, self.auth_token, self.DEBUG, 
+               self.ERROR_400_RETRY, self.ERROR_500_RETRY, 
+               self.ERROR_502_RETRY, self.ERROR_DELAY)
 
     def name(self):
         return os.path.basename(self.ROOT_URL)
@@ -110,6 +122,12 @@ class Firebase:
         elif self.ERROR_500_RETRY and response.status_code == 500:
             if self.DEBUG:
                 sys.stderr.write('[ ERROR 500 RETRY ]\n')
+                sys.stderr.flush()
+            sleep(self.ERROR_DELAY)
+            return self.__request(method, data = _data)
+        elif self.ERROR_502_RETRY and response.status_code == 502:
+            if self.DEBUG:
+                sys.stderr.write('[ ERROR 502 RETRY ]\n')
                 sys.stderr.flush()
             sleep(self.ERROR_DELAY)
             return self.__request(method, data = _data)
